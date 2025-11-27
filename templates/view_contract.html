@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}View Contract - {{ contract.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h4 class="mb-0"><i class="bi bi-file-pdf"></i> {{ contract.title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <span class="badge category-badge text-white">{{ contract.template.category }}</span>
+                        <span class="text-muted ms-2">
+                            <i class="bi bi-calendar3"></i> {{ contract.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-3 mb-4" style="white-space: pre-wrap; font-family: 'Georgia', serif; line-height: 1.8; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    <h3 class="mb-4 pb-3" style="border-bottom: 3px solid #667eea; color: #1a202c; font-weight: 700;">{{ contract.title }}</h3>
+                    <div style="color: #2d3748;">{{ contract.filled_content }}</div>
+                </div>
+
+                {% if contract.signature_data %}
+                <div class="pt-4 mt-4" style="border-top: 2px solid #e0e6ed;">
+                    <h5 class="mb-4" style="color: #1a202c; font-weight: 700;">
+                        <i class="bi bi-pen"></i> Electronic Signature
+                    </h5>
+                    <div class="signature-preview p-4 rounded-3" style="background: #f8f9fa; border: 2px solid #e0e6ed;">
+                        <img src="{{ contract.signature_data }}" alt="Signature" style="max-width: 400px; border: 2px solid #dee2e6; background: white; padding: 15px; border-radius: 8px;">
+                    </div>
+                </div>
+                {% endif %}
+
+                <hr class="my-4">
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                    <a href="{{ url_for('contracts_list') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Contracts
+                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('download_contract', contract_uuid=contract.uuid) }}" class="btn btn-gradient">
+                            <i class="bi bi-download"></i> Download PDF
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_contract', contract_uuid=contract.uuid) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this contract?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -37,7 +37,10 @@ A comprehensive Flask web application for managing contract templates with elect
 │   ├── create_template.html # Create new template form
 │   ├── edit_template.html  # Edit template form
 │   ├── generate_contract.html # Fill variables and capture signature
-│   └── preview.html       # Preview and download contract PDF
+│   ├── preview.html       # Preview and save/download contract PDF
+│   ├── contracts.html     # List all saved contracts
+│   └── view_contract.html # View a specific saved contract
+├── generated_contracts/   # Server-side PDF storage directory
 ├── contracts.db           # SQLite database (auto-created)
 ├── pyproject.toml         # Python dependencies
 └── .gitignore            # Git ignore rules
@@ -48,7 +51,11 @@ A comprehensive Flask web application for managing contract templates with elect
 - `/edit-template/<id>` - Edit existing template
 - `/delete-template/<id>` - Delete template
 - `/generate-contract/<id>` - Fill variables and add signature
-- `/download-pdf` - Generate and download PDF with signature
+- `/save-and-download/<template_id>` - Save contract to database and download PDF
+- `/download/<contract_uuid>` - Server-side PDF download by contract UUID
+- `/contracts` - List all saved contracts
+- `/contract/<contract_uuid>` - View a specific saved contract
+- `/delete-contract/<contract_uuid>` - Delete a saved contract
 
 ## Database Schema
 **Template Model:**
@@ -56,6 +63,18 @@ A comprehensive Flask web application for managing contract templates with elect
 - `title`: Template name
 - `category`: Template category
 - `content`: Template text with variables
+- `created_at`: Timestamp
+- `contracts`: Relationship to Contract model
+
+**Contract Model:**
+- `id`: Primary key
+- `uuid`: Unique identifier for URL-safe access
+- `template_id`: Foreign key to Template
+- `title`: Contract title
+- `filled_content`: Contract text with variables filled in
+- `signature_data`: Base64 signature image data
+- `pdf_filename`: Server-side PDF filename
+- `variables_json`: JSON of filled variables
 - `created_at`: Timestamp
 
 ## How to Use
@@ -84,6 +103,15 @@ A comprehensive Flask web application for managing contract templates with elect
 - **Error Handling**: Specific exceptions with user-friendly error messages
 
 ## Recent Changes
+- **November 27, 2025**: Contract Storage and Server-Side Downloads
+  - Added Contract model to store all generated contracts with PDF files
+  - Implemented server-side PDF storage in `generated_contracts/` directory
+  - Created `/contracts` page to view all saved contracts
+  - Added server-side download endpoint (`/download/<contract_uuid>`) instead of blob-based downloads
+  - Added contract view, download, and delete functionality
+  - Updated navigation with "Contracts" tab in bottom navigation
+  - PDFs are now stored on disk and served via Flask's `send_file`
+
 - **October 14, 2025 (Security Audit)**: Comprehensive security improvements
   - **CSRF Protection**: Added Flask-WTF CSRF protection to all POST routes (create, edit, delete, generate, download-pdf)
   - **HTML Injection Fix**: Implemented proper HTML escaping for template title, content, and signature in PDF generation

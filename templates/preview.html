@@ -42,13 +42,14 @@
                         <a href="{{ url_for('generate_contract', id=template.id) }}" class="btn btn-outline-primary">
                             <i class="bi bi-arrow-left"></i> Generate Another
                         </a>
-                        <form method="POST" action="{{ url_for('download_pdf', template_id=template.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('save_and_download', template_id=template.id) }}" style="display: inline;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <input type="hidden" name="content" value="{{ content }}">
                             <input type="hidden" name="signature" value="{{ signature }}">
                             <input type="hidden" name="template_title" value="{{ template.title }}">
+                            <input type="hidden" name="variables_json" value="{{ variables | tojson }}">
                             <button type="submit" class="btn btn-gradient">
-                                <i class="bi bi-download"></i> Download PDF
+                                <i class="bi bi-download"></i> Save & Download PDF
                             </button>
                         </form>
                     </div>

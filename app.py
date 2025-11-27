@@ -1,7 +1,8 @@
 import os
 import re
 import base64
-from flask import Flask, render_template, request, redirect, url_for, make_response
+import uuid
+from flask import Flask, render_template, request, redirect, url_for, make_response, send_file, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
@@ -10,6 +11,10 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///contracts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+CONTRACTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'generated_contracts')
+if not os.path.exists(CONTRACTS_DIR):
+    os.makedirs(CONTRACTS_DIR)
 
 db = SQLAlchemy(app)
 csrf = CSRFProtect(app)
@@ -20,9 +25,24 @@ class Template(db.Model):
     category = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    contracts = db.relationship('Contract', backref='template', lazy=True)
     
     def __repr__(self):
         return f'<Template {self.title}>'
+
+class Contract(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
+    template_id = db.Column(db.Integer, db.ForeignKey('template.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    filled_content = db.Column(db.Text, nullable=False)
+    signature_data = db.Column(db.Text)
+    pdf_filename = db.Column(db.String(255), nullable=False)
+    variables_json = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<Contract {self.title}>'
 
 def extract_variables(content):
     """Extract variables from template content (e.g., {client_name})"""
@@ -188,26 +208,29 @@ def admin():
     
     return render_template('admin.html', templates_by_category=templates_by_category)
 
-@app.route('/download-pdf/<int:template_id>', methods=['POST'])
-def download_pdf(template_id):
-    from weasyprint import HTML
-    from io import BytesIO
-    from flask import send_file
-    import html
+def generate_pdf_html(title, content, signature):
+    """Generate HTML for PDF conversion"""
+    import html as html_module
     
-    content = request.form.get('content', '')
-    signature = request.form.get('signature', '')
-    template_title = request.form.get('template_title', 'contract')
-    
-    escaped_title = html.escape(template_title)
-    escaped_content = html.escape(content)
+    escaped_title = html_module.escape(title)
+    escaped_content = html_module.escape(content)
     
     if signature and not signature.startswith('data:image/'):
         signature = ''
     
-    escaped_signature = html.escape(signature, quote=True) if signature else ''
+    escaped_signature = html_module.escape(signature, quote=True) if signature else ''
     
-    html_content = f'''
+    signature_section = ''
+    if escaped_signature:
+        signature_section = f'''
+        <div class="signature-section">
+            <p><strong>Electronic Signature:</strong></p>
+            <img src="{escaped_signature}" class="signature-image" alt="Signature" />
+            <p style="margin-top: 20px;"><small>Signed on: {datetime.now().strftime("%B %d, %Y at %I:%M %p")}</small></p>
+        </div>
+        '''
+    
+    return f'''
     <!DOCTYPE html>
     <html>
     <head>
@@ -248,28 +271,97 @@ def download_pdf(template_id):
     <body>
         <h1>{escaped_title}</h1>
         <div class="contract-content">{escaped_content}</div>
-        <div class="signature-section">
-            <p><strong>Electronic Signature:</strong></p>
-            <img src="{escaped_signature}" class="signature-image" alt="Signature" />
-            <p style="margin-top: 20px;"><small>Signed on: {datetime.now().strftime("%B %d, %Y at %I:%M %p")}</small></p>
-        </div>
+        {signature_section}
     </body>
     </html>
     '''
+
+def save_contract_pdf(template_id, title, content, signature, variables_dict):
+    """Save a contract to the database and generate PDF file"""
+    from weasyprint import HTML
+    import json
     
-    pdf_file = BytesIO()
-    HTML(string=html_content, encoding='utf-8').write_pdf(pdf_file)
-    pdf_file.seek(0)
+    contract_uuid = str(uuid.uuid4())
+    safe_filename = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).replace(' ', '_')
+    pdf_filename = f"{safe_filename}_{contract_uuid[:8]}.pdf"
+    pdf_path = os.path.join(CONTRACTS_DIR, pdf_filename)
     
-    safe_filename = "".join(c for c in template_title if c.isalnum() or c in (' ', '-', '_')).replace(' ', '_')
-    filename = f"{safe_filename or 'contract'}.pdf"
+    html_content = generate_pdf_html(title, content, signature)
+    HTML(string=html_content, encoding='utf-8').write_pdf(pdf_path)
+    
+    contract = Contract(
+        uuid=contract_uuid,
+        template_id=template_id,
+        title=title,
+        filled_content=content,
+        signature_data=signature,
+        pdf_filename=pdf_filename,
+        variables_json=json.dumps(variables_dict) if variables_dict else None
+    )
+    db.session.add(contract)
+    db.session.commit()
+    
+    return contract
+
+@app.route('/save-and-download/<int:template_id>', methods=['POST'])
+def save_and_download(template_id):
+    """Save contract to database and redirect to download"""
+    content = request.form.get('content', '')
+    signature = request.form.get('signature', '')
+    template_title = request.form.get('template_title', 'contract')
+    variables_json = request.form.get('variables_json', '{}')
+    
+    import json
+    try:
+        variables_dict = json.loads(variables_json)
+    except json.JSONDecodeError:
+        variables_dict = {}
+    
+    contract = save_contract_pdf(template_id, template_title, content, signature, variables_dict)
+    
+    return redirect(url_for('download_contract', contract_uuid=contract.uuid))
+
+@app.route('/download/<contract_uuid>')
+def download_contract(contract_uuid):
+    """Server-side download of stored contract PDF"""
+    contract = Contract.query.filter_by(uuid=contract_uuid).first_or_404()
+    pdf_path = os.path.join(CONTRACTS_DIR, contract.pdf_filename)
+    
+    if not os.path.exists(pdf_path):
+        abort(404, description="PDF file not found")
     
     return send_file(
-        pdf_file,
+        pdf_path,
         mimetype='application/pdf',
         as_attachment=True,
-        download_name=filename
+        download_name=contract.pdf_filename
     )
+
+@app.route('/contracts')
+def contracts_list():
+    """View all generated contracts"""
+    contracts = Contract.query.order_by(Contract.created_at.desc()).all()
+    return render_template('contracts.html', contracts=contracts)
+
+@app.route('/contract/<contract_uuid>')
+def view_contract(contract_uuid):
+    """View a specific contract"""
+    contract = Contract.query.filter_by(uuid=contract_uuid).first_or_404()
+    return render_template('view_contract.html', contract=contract)
+
+@app.route('/delete-contract/<contract_uuid>', methods=['POST'])
+def delete_contract(contract_uuid):
+    """Delete a contract and its PDF file"""
+    contract = Contract.query.filter_by(uuid=contract_uuid).first_or_404()
+    
+    pdf_path = os.path.join(CONTRACTS_DIR, contract.pdf_filename)
+    if os.path.exists(pdf_path):
+        os.remove(pdf_path)
+    
+    db.session.delete(contract)
+    db.session.commit()
+    
+    return redirect(url_for('contracts_list', success_message='Contract deleted successfully!'))
 
 def init_db():
     """Initialize database with sample templates"""
