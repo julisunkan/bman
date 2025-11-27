@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Contract Preview{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h4 class="mb-0"><i class="bi bi-eye"></i> Contract Preview: {{ template.title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success mb-4" style="background: #d4edda; border-left: 4px solid #28a745;">
+                    <i class="bi bi-check-circle" style="color: #28a745;"></i> 
+                    <strong>Success!</strong> Your contract has been generated successfully! Review it below and download as PDF.
+                </div>
+
+                <div class="bg-white p-5 rounded-3 mb-4" style="white-space: pre-wrap; font-family: 'Georgia', serif; line-height: 1.8; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    <h3 class="mb-4 pb-3" style="border-bottom: 3px solid #667eea; color: #1a202c; font-weight: 700;">{{ template.title }}</h3>
+                    <div style="color: #2d3748;">{{ content }}</div>
+                </div>
+
+                <div class="pt-4 mt-4" style="border-top: 2px solid #e0e6ed;">
+                    <h5 class="mb-4" style="color: #1a202c; font-weight: 700;">
+                        <i class="bi bi-pen"></i> Electronic Signature
+                    </h5>
+                    <div class="signature-preview p-4 rounded-3" style="background: #f8f9fa; border: 2px solid #e0e6ed;">
+                        <img src="{{ signature }}" alt="Signature" style="max-width: 400px; border: 2px solid #dee2e6; background: white; padding: 15px; border-radius: 8px;">
+                        <p class="text-muted mt-3 mb-0">
+                            <i class="bi bi-clock"></i> Signed on {{ now.strftime('%B %d, %Y at %I:%M %p') }}
+                        </p>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        <i class="bi bi-house"></i> Back to Home
+                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('generate_contract', id=template.id) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left"></i> Generate Another
+                        </a>
+                        <form method="POST" action="{{ url_for('download_pdf', template_id=template.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="content" value="{{ content }}">
+                            <input type="hidden" name="signature" value="{{ signature }}">
+                            <input type="hidden" name="template_title" value="{{ template.title }}">
+                            <button type="submit" class="btn btn-gradient">
+                                <i class="bi bi-download"></i> Download PDF
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

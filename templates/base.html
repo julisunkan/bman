@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ff6b35">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Legal Documents Generator - Create and manage contracts easily">
+    <title>{% block title %}Legal Documents Generator{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html {
+            overflow-x: hidden;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+            min-height: 100vh;
+            padding-bottom: 80px;
+            overscroll-behavior: none;
+        }
+        
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #fdc830 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .top-header h1 {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        
+        .content-wrapper {
+            margin-top: 70px;
+            margin-bottom: 20px;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+        }
+        
+        .bottom-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            text-decoration: none;
+            color: #6c757d;
+            transition: all 0.3s;
+            border-radius: 8px;
+            margin: 0 0.25rem;
+        }
+        
+        .bottom-nav-item:hover,
+        .bottom-nav-item.active {
+            color: #ff6b35;
+            background: #fff5e6;
+        }
+        
+        .bottom-nav-item i {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .bottom-nav-item span {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .navbar {
+            display: none;
+        }
+        
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+            border-radius: 16px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            border-bottom: none;
+            padding: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .category-badge {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+            font-weight: 600;
+            border-radius: 20px;
+            letter-spacing: 0.3px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #4caf50 100%);
+        }
+        
+        .signature-canvas {
+            border: 3px dashed #e0e6ed;
+            border-radius: 12px;
+            cursor: crosshair;
+            background-color: #fafbfc;
+            transition: border-color 0.3s;
+        }
+        
+        .signature-canvas:hover {
+            border-color: #ff6b35;
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #fdc830 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #fdc830 0%, #f7931e 50%, #ff6b35 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e0e6ed;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+        
+        h1, h2, h3, h4, h5 {
+            font-weight: 700;
+            color: #1a202c;
+        }
+        
+        .display-4 {
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #4caf50 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        footer {
+            background: white;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .card-footer {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .template-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #fdc830 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        .template-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .template-card:hover .template-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="top-header">
+        <h1><i class="bi bi-file-earmark-text"></i> Legal Documents Generator</h1>
+    </div>
+
+    <div class="container content-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="{{ url_for('index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+            <i class="bi bi-house-door-fill"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('create_template') }}" class="bottom-nav-item {% if request.endpoint == 'create_template' %}active{% endif %}">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>Create</span>
+        </a>
+        <a href="{{ url_for('index') }}" class="bottom-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+            <i class="bi bi-file-earmark-text-fill"></i>
+            <span>Templates</span>
+        </a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Prevent pull-to-refresh on mobile
+        document.body.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

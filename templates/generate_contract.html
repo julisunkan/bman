@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Generate Contract - {{ template.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .variable-input {
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h4 class="mb-0"><i class="bi bi-file-earmark-text"></i> Generate Contract: {{ template.title }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4" style="background: #e8f4fd; border-left: 4px solid #667eea;">
+                    <i class="bi bi-info-circle" style="color: #667eea;"></i> 
+                    <strong>Instructions:</strong> Fill in the required information below and add your signature to generate the contract.
+                </div>
+
+                <div id="signatureError" class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="display: none; border-left: 4px solid #dc3545;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Please provide a signature before generating the contract.
+                    <button type="button" class="btn-close" onclick="document.getElementById('signatureError').style.display='none'"></button>
+                </div>
+
+                {% if error_message %}
+                <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="border-left: 4px solid #dc3545;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="POST" id="contractForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {% if variables %}
+                    <h5 class="mb-4" style="color: #1a202c; font-weight: 700; padding-bottom: 0.5rem; border-bottom: 3px solid #667eea;">
+                        <i class="bi bi-pencil-square"></i> Contract Information
+                    </h5>
+                    {% for variable in variables %}
+                    <div class="variable-input">
+                        <label for="{{ variable }}" class="form-label">
+                            {{ variable.replace('_', ' ').title() }}
+                        </label>
+                        {% if 'date' in variable.lower() %}
+                        <input type="date" class="form-control" id="{{ variable }}" name="{{ variable }}" required>
+                        {% elif 'amount' in variable.lower() or 'price' in variable.lower() or 'fee' in variable.lower() or 'cost' in variable.lower() or 'salary' in variable.lower() or 'rent' in variable.lower() or 'payment' in variable.lower() %}
+                        <div class="input-group">
+                            <select class="form-select" name="{{ variable }}_currency" style="max-width: 150px;" required>
+                                <option value="$">$ - US Dollar</option>
+                                <option value="€">€ - Euro</option>
+                                <option value="£">£ - British Pound</option>
+                                <option value="¥">¥ - Japanese Yen</option>
+                                <option value="₹">₹ - Indian Rupee</option>
+                                <option value="₽">₽ - Russian Ruble</option>
+                                <option value="¢">¢ - Cent</option>
+                                <option value="₦">₦ - Nigerian Naira</option>
+                                <option value="₱">₱ - Philippine Peso</option>
+                                <option value="₩">₩ - South Korean Won</option>
+                                <option value="₪">₪ - Israeli Shekel</option>
+                                <option value="₫">₫ - Vietnamese Dong</option>
+                                <option value="฿">฿ - Thai Baht</option>
+                                <option value="₴">₴ - Ukrainian Hryvnia</option>
+                                <option value="₡">₡ - Costa Rican Colón</option>
+                                <option value="₵">₵ - Ghana Cedi</option>
+                                <option value="؋">؋ - Afghan Afghani</option>
+                                <option value="₼">₼ - Azerbaijani Manat</option>
+                                <option value="৳">৳ - Bangladeshi Taka</option>
+                                <option value="₾">₾ - Georgian Lari</option>
+                                <option value="₺">₺ - Turkish Lira</option>
+                                <option value="₸">₸ - Kazakhstani Tenge</option>
+                                <option value="₮">₮ - Mongolian Tögrög</option>
+                                <option value="₯">₯ - Greek Drachma</option>
+                                <option value="₰">₰ - German Penny</option>
+                                <option value="R">R - South African Rand</option>
+                                <option value="R$">R$ - Brazilian Real</option>
+                                <option value="S$">S$ - Singapore Dollar</option>
+                                <option value="C$">C$ - Canadian Dollar</option>
+                                <option value="A$">A$ - Australian Dollar</option>
+                                <option value="NZ$">NZ$ - New Zealand Dollar</option>
+                                <option value="HK$">HK$ - Hong Kong Dollar</option>
+                                <option value="CHF">CHF - Swiss Franc</option>
+                                <option value="kr">kr - Swedish Krona</option>
+                                <option value="zł">zł - Polish Zloty</option>
+                                <option value="Kč">Kč - Czech Koruna</option>
+                                <option value="Ft">Ft - Hungarian Forint</option>
+                                <option value="lei">lei - Romanian Leu</option>
+                                <option value="RM">RM - Malaysian Ringgit</option>
+                                <option value="Rp">Rp - Indonesian Rupiah</option>
+                                <option value="₨">₨ - Pakistani Rupee</option>
+                                <option value="රු">රු - Sri Lankan Rupee</option>
+                                <option value="៛">៛ - Cambodian Riel</option>
+                                <option value="₭">₭ - Lao Kip</option>
+                                <option value="₪">₪ - Israeli Shekel</option>
+                                <option value="﷼">﷼ - Saudi Riyal</option>
+                                <option value="د.إ">د.إ - UAE Dirham</option>
+                                <option value="د.ك">د.ك - Kuwaiti Dinar</option>
+                                <option value="ر.ق">ر.ق - Qatari Riyal</option>
+                                <option value="ر.ع">ر.ع - Omani Rial</option>
+                                <option value="ل.ل">ل.ل - Lebanese Pound</option>
+                                <option value="ج.م">ج.م - Egyptian Pound</option>
+                                <option value="د.ج">د.ج - Algerian Dinar</option>
+                                <option value="د.م">د.م - Moroccan Dirham</option>
+                                <option value="د.ت">د.ت - Tunisian Dinar</option>
+                                <option value="د.ل">د.ل - Libyan Dinar</option>
+                                <option value="Br">Br - Ethiopian Birr</option>
+                                <option value="USh">USh - Ugandan Shilling</option>
+                                <option value="KSh">KSh - Kenyan Shilling</option>
+                                <option value="TSh">TSh - Tanzanian Shilling</option>
+                            </select>
+                            <input type="text" class="form-control" id="{{ variable }}" name="{{ variable }}" placeholder="Enter amount" required>
+                        </div>
+                        {% else %}
+                        <input type="text" class="form-control" id="{{ variable }}" name="{{ variable }}" required>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        This template has no variables. You can still add a signature.
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-5" style="border-top: 2px solid #e0e6ed;">
+
+                    <h5 class="mb-4" style="color: #1a202c; font-weight: 700; padding-bottom: 0.5rem; border-bottom: 3px solid #667eea;">
+                        <i class="bi bi-pen"></i> Electronic Signature
+                    </h5>
+                    <p class="text-muted mb-3" style="font-size: 0.95rem;">Please sign in the box below using your mouse or touchscreen:</p>
+                    
+                    <div class="mb-3" style="background: #f8f9fa; padding: 1rem; border-radius: 12px;">
+                        <canvas id="signaturePad" class="signature-canvas" style="width: 100%; max-width: 100%; height: 200px;"></canvas>
+                    </div>
+
+                    <div class="mb-4">
+                        <button type="button" class="btn btn-outline-secondary" id="clearSignature">
+                            <i class="bi bi-arrow-counterclockwise"></i> Clear Signature
+                        </button>
+                    </div>
+
+                    <input type="hidden" name="signature" id="signatureData">
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-gradient" id="generateBtn">
+                            <i class="bi bi-file-earmark-check"></i> Generate Contract
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+    const canvas = document.getElementById('signaturePad');
+    const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgb(255, 255, 255)',
+        penColor: 'rgb(0, 0, 0)'
+    });
+
+    document.getElementById('clearSignature').addEventListener('click', function() {
+        signaturePad.clear();
+    });
+
+    document.getElementById('contractForm').addEventListener('submit', function(e) {
+        if (signaturePad.isEmpty()) {
+            e.preventDefault();
+            const errorDiv = document.getElementById('signatureError');
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+
+        document.getElementById('signatureError').style.display = 'none';
+        const signatureData = signaturePad.toDataURL('image/png');
+        document.getElementById('signatureData').value = signatureData;
+    });
+
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        const canvasWidth = canvas.offsetWidth;
+        const canvasHeight = 200;
+        
+        canvas.width = canvasWidth * ratio;
+        canvas.height = canvasHeight * ratio;
+        canvas.style.width = canvasWidth + 'px';
+        canvas.style.height = canvasHeight + 'px';
+        
+        canvas.getContext("2d").scale(ratio, ratio);
+        signaturePad.clear();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+</script>
+{% endblock %}

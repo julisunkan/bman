@@ -1,0 +1,90 @@
+Create a Flask web app for contract/template management with these features:
+
+1. Use SQLite (via Flask-SQLAlchemy) to store contract templates with fields: title, category, content.
+
+2. On first run, pre-populate the database with the following contract templates (each with basic placeholder content including variables in curly braces):
+
+🗂️ Contract Templates List
+
+💼 Business & Employment  
+- Non-Disclosure Agreement (NDA)  
+- Employment Agreement  
+- Independent Contractor Agreement  
+- Partnership Agreement  
+- Non-Compete Agreement  
+- Consulting Agreement  
+- Offer Letter  
+
+🏠 Real Estate  
+- Residential Lease Agreement  
+- Commercial Lease Agreement  
+- Rental Application  
+- Roommate Agreement  
+- Property Sale Agreement  
+
+💰 Financial & Loans  
+- Promissory Note  
+- Loan Agreement  
+- Installment Payment Agreement  
+- Debt Acknowledgement Form  
+
+📦 Services & Freelance  
+- Freelance Contract  
+- Service Agreement  
+- Maintenance Contract  
+- Event Planning Contract  
+
+📜 Legal & Personal  
+- Power of Attorney  
+- Living Will  
+- General Release of Liability  
+- Cease and Desist Letter  
+- Affidavit  
+
+🧾 Purchase & Sales  
+- Bill of Sale (General)  
+- Vehicle Bill of Sale  
+- Purchase Agreement  
+- Sales Commission Agreement  
+
+💻 Tech & IP  
+- Software License Agreement  
+- Website Development Agreement  
+- App Development Agreement  
+- Intellectual Property Assignment  
+- Data Processing Agreement (DPA)  
+
+3. Main page lists all templates with options to create new, edit, and delete.
+
+4. Template content supports variables inside curly braces, e.g. {client_name}, {start_date}.
+
+5. When generating a contract, automatically detect variables and display a form to fill them.
+
+6. Include an HTML5 canvas for users to draw an e-signature using Signature Pad JS library.
+
+7. On form submit, combine the filled variables with the template content and capture the signature as base64 PNG.
+
+8. Show a preview page displaying the filled contract text and the signature image.
+
+9. Provide a button to download the contract as a PDF with the embedded signature using WeasyPrint.
+
+10. Use Bootstrap 5 for UI styling and responsiveness.
+
+11. No user login/authentication; all templates are global.
+
+12. Routes:
+
+- `/` - list all templates  
+- `/create-template` - create new template form  
+- `/edit-template/<id>` - edit template form  
+- `/delete-template/<id>` - delete template action  
+- `/generate-contract/<id>` - fill variables + capture signature  
+- `/download-pdf` - POST route to generate and download PDF  
+
+Provide full Python Flask code (app + models + routes), HTML templates with Bootstrap, and JavaScript for signature pad integration.
+
+Use WeasyPrint for PDF generation.
+
+---
+
+After generating, please explain how to install dependencies, run the app, and test it on Replit.

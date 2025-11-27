@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Template{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h4 class="mb-0"><i class="bi bi-pencil"></i> Edit Contract Template</h4>
+            </div>
+            <div class="card-body">
+                {% if message %}
+                <div class="alert alert-{{ message_type }} alert-dismissible fade show mb-3" role="alert" style="border-left: 4px solid {% if message_type == 'danger' %}#dc3545{% else %}#28a745{% endif %};">
+                    <i class="bi {% if message_type == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{{ url_for('edit_template', id=template.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Template Title</label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               value="{{ template.title }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="Business & Employment" {% if template.category == 'Business & Employment' %}selected{% endif %}>Business & Employment</option>
+                            <option value="Real Estate" {% if template.category == 'Real Estate' %}selected{% endif %}>Real Estate</option>
+                            <option value="Financial & Loans" {% if template.category == 'Financial & Loans' %}selected{% endif %}>Financial & Loans</option>
+                            <option value="Services & Freelance" {% if template.category == 'Services & Freelance' %}selected{% endif %}>Services & Freelance</option>
+                            <option value="Legal & Personal" {% if template.category == 'Legal & Personal' %}selected{% endif %}>Legal & Personal</option>
+                            <option value="Purchase & Sales" {% if template.category == 'Purchase & Sales' %}selected{% endif %}>Purchase & Sales</option>
+                            <option value="Tech & IP" {% if template.category == 'Tech & IP' %}selected{% endif %}>Tech & IP</option>
+                            <option value="Other" {% if template.category == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Template Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="15" required>{{ template.content }}</textarea>
+                        <div class="form-text">
+                            <i class="bi bi-lightbulb"></i> 
+                            Tip: Use curly braces for variables, e.g., {client_name}, {start_date}, {amount}
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-gradient">
+                            <i class="bi bi-check-circle"></i> Update Template
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
