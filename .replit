@@ -1,4 +1,4 @@
-modules = ["python-3.11"]
+modules = ["web", "python-3.11"]
 [agent]
 expertMode = true
 
@@ -27,9 +27,16 @@ task = "shell.exec"
 args = "gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app"
 waitForPort = 5000
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 39515
+externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"

@@ -6,3 +6,15 @@ flask-sqlalchemy>=3.1.1
 gunicorn>=23.0.0
 psycopg2-binary>=2.9.11
 weasyprint>=66.0
+email_validator
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+email-validator
+flask
+flask-sqlalchemy
+flask-wtf
+gunicorn
+psycopg2-binary
+weasyprint
